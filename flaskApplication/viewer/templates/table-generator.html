@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<link href="https://unpkg.com/tabulator-tables@4.8.4/dist/css/tabulator.css" rel="stylesheet">
+<script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.8.4/dist/js/tabulator.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"
+        integrity="sha512-qTXRIMyZIFb8iQcfjXWCO8+M5Tbc38Qi5WzdPOYZHIlZpzBHG3L3by84BBBOiRGiEb7KKtAOAs5qYdUiZiQNNQ=="
+        crossorigin="anonymous"></script>
+<script type="text/javascript" src="{{ url_for('viewer_bp.static', filename = 'date-editor.js') }}"></script>
+
+
+<div id="example-table"></div>
+<script>
+    var tabledata = {{ table_data | tojson }};
+    var table = new Tabulator("#example-table", {
+        data:tabledata,           //load row data from array
+        layout:"fitColumns",      //fit columns to width of table
+        responsiveLayout:"hide",  //hide columns that dont fit on the table
+        tooltips:true,            //show tool tips on cells
+        addRowPos:"top",          //when adding a new row, add it to the top of the table
+        history:true,             //allow undo and redo actions on the table
+        pagination:"local",       //paginate the data
+        paginationSize:100,         //allow 7 rows per page of data
+        movableColumns:true,      //allow column order to be changed
+        resizableRows:true,       //allow row order to be changed
+        initialSort:[             //set the initial sort order of the data
+            {column:"name", dir:"asc"},
+        ],
+        columns: [{ % for value in table_columns % }
+                {{ value | safe }},
+             { % endfor % }]
+    });
+</script>
+{% endblock %}

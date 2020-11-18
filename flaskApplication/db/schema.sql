@@ -1,0 +1,12 @@
+DROP TABLE IF EXISTS transactions;
+
+CREATE TABLE transactions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  amount FLOAT NOT NULL,
+  date DATE NOT NULL,
+  what TEXT NOT NULL,
+  name TEXT NOT NULL,
+  attributed TEXT NOT NULL,
+  Maren FLOAT NOT NULL,
+  Tom FLOAT NOT NULL
+);
