@@ -1,4 +1,4 @@
-var dateEditor = function (cell, onRendered, success, cancel, editorParams) {
+var dateEditor = function(cell, onRendered, success, cancel, editorParams){
     //cell - the cell component for the editable cell
     //onRendered - function to call when the editor has been rendered
     //success - function to call to pass the successfuly updated value to Tabulator
@@ -16,7 +16,7 @@ var dateEditor = function (cell, onRendered, success, cancel, editorParams) {
     editor.style.boxSizing = "border-box";
 
     //Set value of editor to the current value of the cell
-    editor.value = moment(cell.getValue(), "DD/MM/YYYY").format("YYYY-MM-DD")
+    editor.value = moment(cell.getValue(), "YYYY-MM-DD").format("YYYY-MM-DD")
 
     //set focus on the select box when the editor is selected (timeout allows for editor to be added to DOM)
     onRendered(function () {
@@ -26,7 +26,7 @@ var dateEditor = function (cell, onRendered, success, cancel, editorParams) {
 
     //when the value has been set, trigger the cell to update
     function successFunc() {
-        success(moment(editor.value, "YYYY-MM-DD").format("DD/MM/YYYY"));
+        success(moment(editor.value, "YYYY-MM-DD").format("YYYY-MM-DD"));
     }
 
     editor.addEventListener("change", successFunc);

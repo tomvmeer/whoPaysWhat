@@ -1,4 +1,3 @@
-{% extends 'base.html' %}
 {% block content %}
 
 <link href="https://unpkg.com/tabulator-tables@4.8.4/dist/css/tabulator.css" rel="stylesheet">
@@ -7,28 +6,71 @@
         integrity="sha512-qTXRIMyZIFb8iQcfjXWCO8+M5Tbc38Qi5WzdPOYZHIlZpzBHG3L3by84BBBOiRGiEb7KKtAOAs5qYdUiZiQNNQ=="
         crossorigin="anonymous"></script>
 <script type="text/javascript" src="{{ url_for('viewer_bp.static', filename = 'date-editor.js') }}"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 
+<div>
+    <button id="add-row">Add new row</button>
+    <button id="reset">Reset table</button>
+</div>
 
 <div id="example-table"></div>
+
 <script>
-    var tabledata = {{ table_data | tojson }};
+    var columns = {{ columns | tojson }};
+
+    var cdata = $.parseJSON($.ajax({
+        url:  "{{ url_for('api_bp.get_col_type', table=table) }}",
+        type: "get",
+        dataType: "text",
+        data: {"cols":columns},
+        async: false
+    }).responseText);
+
+    cols = [];
+    for(c in cdata){
+        var dict = JSON.parse(cdata[c]);
+        if(dict['editor'] == 'true'){
+            dict['editor'] = true;
+        }
+        if(dict['editor'] == 'dateEditor'){
+            dict['editor'] = dateEditor;
+        }
+        cols.push(dict);
+    }
+
     var table = new Tabulator("#example-table", {
-        data:tabledata,           //load row data from array
+        // data:tabledata,           //load row data from array
         layout:"fitColumns",      //fit columns to width of table
         responsiveLayout:"hide",  //hide columns that dont fit on the table
         tooltips:true,            //show tool tips on cells
         addRowPos:"top",          //when adding a new row, add it to the top of the table
         history:true,             //allow undo and redo actions on the table
         pagination:"local",       //paginate the data
-        paginationSize:100,         //allow 7 rows per page of data
+        paginationSize:50,         //allow 7 rows per page of data
         movableColumns:true,      //allow column order to be changed
         resizableRows:true,       //allow row order to be changed
         initialSort:[             //set the initial sort order of the data
-            {column:"name", dir:"asc"},
+            {column:"date", dir:"desc"},
         ],
-        columns: [{ % for value in table_columns % }
-                {{ value | safe }},
-             { % endfor % }]
+        columns: cols
+        });
+    table.setData("{{ url_for('api_bp.get_data', table=table) }}", {cols:JSON.stringify(columns)});
+
+    //Add row on "Add Row" button click
+    document.getElementById("add-row").addEventListener("click", function(){
+        var today = new Date();
+        var dd = String(today.getDate()).padStart(2, '0');
+        var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+        var yyyy = today.getFullYear();
+
+        today = yyyy + '-' + mm + '-' + dd;
+        table.addRow({date:today});
     });
+
+    //Reset table contents on "Reset the table" button click
+    document.getElementById("reset").addEventListener("click", function(){
+        table.setData("{{ url_for('api_bp.get_data', table=table) }}", {cols:JSON.stringify(columns)});
+    });
+
 </script>
 {% endblock %}
