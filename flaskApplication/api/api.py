@@ -7,9 +7,10 @@ import sqlite3
 api_bp = Blueprint('api_bp', __name__)
 
 edit_selector_config = lambda \
-        col: f'{{"title":"{col}", "field":"{col}", "editor":"select", "editorParams":{{"values":"true", "sortValuesList":"asc"}}}}'
-edit_any_config = lambda col: f'{{"title":"{col}", "field":"{col}", "editor":"true"}}'
+        col: f'{{"title":"{col}", "field":"{col}", "editor":"select"}}'
+edit_any_config = lambda col: f'{{"title":"{col}", "field":"{col}", "editor":"true", "formatter":"textarea"}}'
 edit_date_config = lambda col: f'{{"title":"{col}", "field": "{col}", "editor":"dateEditor"}}'
+mandatory_insert_cols = ['amount', 'date', 'what', 'name', 'attributed']
 
 
 @api_bp.route('/get_data/<table>')
@@ -46,3 +47,56 @@ def get_col_type(table):
         else:
             data.append(edit_any_config(col))
     return jsonify(data)
+
+
+@api_bp.route('/del_data/<table>', methods=['POST'])
+def del_data(table):
+    data = ast.literal_eval(request.form['data'])
+    query = f'''DELETE FROM {table} WHERE {' AND '.join([str(key) + ' == ' + str(data[key]) if type(data[key]) == float else str(key) + " == '" + str(data[key]) + "'" for key in data])}'''
+    print(query)
+    try:
+        db.update_db(current_app, query)
+    except sqlite3.OperationalError as e:
+        print('> Query caused error:', query, e)
+        return 'Delete failed!'
+    else:
+        return 'Delete successful!'
+
+
+@api_bp.route('/post_data/<table>', methods=['POST'])
+def post_data(table):
+    data = request.form['data']
+    query = f'select * from {table}'
+    try:
+        result = db.query_db(current_app, query)
+        old = []
+        for row in result:
+            temp = dict(row)
+            del temp['index']
+            old.append(temp)
+    except sqlite3.OperationalError as e:
+        print('> Query caused error:', query)
+        return 'Old data load failed!'
+    else:
+        new = ast.literal_eval(data.replace('null', 'None'))
+        added = False
+        for row in new:
+            if row not in old:
+                print(f'> Inserting new row into {table}: {row}')
+                temp = {key: row[key] for key in row if row[key] is not None}
+                if not all(i in temp.keys() for i in mandatory_insert_cols):
+                    return 'Not all columns filled in!'
+                query = f'''INSERT INTO {table} {str(tuple(temp.keys())).replace("'", '')}
+                            VALUES {str(tuple(temp.values()))}'''
+                try:
+                    db.update_db(current_app, query)
+                except sqlite3.OperationalError as e:
+                    print('> Query caused error:', query)
+                    print(e)
+                    return f'Adding row {row} failed!'
+                else:
+                    added = True
+        if added:
+            return 'Added rows successfully!'
+        else:
+            return 'No new data found!'

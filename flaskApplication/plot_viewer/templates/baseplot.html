@@ -16,10 +16,17 @@
 
 <body>
 
-<h1>My First Heading</h1>
-<p>My first paragraph.</p>
-
-{% include "table-generator.html" %}
+<div class="container-fluid">
+    {% include "menu-bar.html" %}
+    <div class="row">
+        <div class="col-8">
+            {% include "bar-generator.html" %}
+        </div>
+        <div class="col">
+            test
+        </div>
+    </div>
+</div>
 </body>
 
 </html>

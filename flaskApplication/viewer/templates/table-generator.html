@@ -11,12 +11,37 @@
 <div>
     <button id="add-row">Add new row</button>
     <button id="reset">Reset table</button>
+    <button onclick=submit()>Submit data</button>
+    <button onclick="del()">Delete row</button>
+    <button onclick="reformat()">Reformat row</button>
+    <button onclick="table.deselectRow()">Deselect all</button>
 </div>
 
 <div id="example-table"></div>
 
 <script>
-    var columns = {{ columns | tojson }};
+    function del() {
+        var selectedRows = table.getSelectedRows();
+
+        selectedRows.forEach(function (row, index) {
+            var posting = $.post("{{ url_for('api_bp.del_data', table=table) }}", {"data": JSON.stringify(row.getData())});
+                posting.done(function( data ) {
+                alert(data);
+            });
+            row.delete();
+        });
+    }
+    function  reformat() {
+        var selectedRows = table.getSelectedRows();
+         selectedRows.forEach(function (row, index) {
+             data = row.getData();
+             if (data["attributed"] === 'Maren, Tom'){
+                 row.update({"Maren":data["amount"]/2});
+                 row.update({"Tom":data["amount"]/2});
+             }
+         });
+    }
+    var columns = {{ columns | tojson }} ;
 
     var cdata = $.parseJSON($.ajax({
         url:  "{{ url_for('api_bp.get_col_type', table=table) }}",
@@ -35,11 +60,14 @@
         if(dict['editor'] == 'dateEditor'){
             dict['editor'] = dateEditor;
         }
+        if(dict['editor'] == 'select'){
+            dict['editorParams'] = {"values":true, "sortValuesList":"asc"};
+        }
         cols.push(dict);
     }
 
     var table = new Tabulator("#example-table", {
-        // data:tabledata,           //load row data from array
+        selectable:true,
         layout:"fitColumns",      //fit columns to width of table
         responsiveLayout:"hide",  //hide columns that dont fit on the table
         tooltips:true,            //show tool tips on cells
@@ -72,5 +100,13 @@
         table.setData("{{ url_for('api_bp.get_data', table=table) }}", {cols:JSON.stringify(columns)});
     });
 
+    function submit() {
+        var data = table.getData();
+        var posting = $.post("{{ url_for('api_bp.post_data', table=table) }}", {"data": JSON.stringify(data)});
+        posting.done(function( data ) {
+                alert(data);
+                table.setData("{{ url_for('api_bp.get_data', table=table) }}", {cols:JSON.stringify(columns)})
+            });
+    }
 </script>
 {% endblock %}

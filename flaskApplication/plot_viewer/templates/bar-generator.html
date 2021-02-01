@@ -1,0 +1,40 @@
+{% block content %}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"
+        integrity="sha512-qTXRIMyZIFb8iQcfjXWCO8+M5Tbc38Qi5WzdPOYZHIlZpzBHG3L3by84BBBOiRGiEb7KKtAOAs5qYdUiZiQNNQ=="
+        crossorigin="anonymous"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+
+<div class="container">
+    <div class="chart" id="bargraph">
+    </div>
+</div>
+
+<input type="number" id="inputn" onchange="myFunction()" min="0" max="100">
+
+<script>
+    var myPlot = document.getElementById('bargraph');
+    function myFunction() {
+        $.ajax({
+            url: "{{ url_for('plot_viewer_bp.bar') }}",
+            type: "GET",
+            contentType: 'application/json;charset=UTF-8',
+            data: {
+                'N': document.getElementById("inputn").value
+
+            },
+            dataType: "json",
+            success: function (data) {
+                Plotly.newPlot('bargraph', data);
+                myPlot.on('plotly_hover', function (data) {
+                    alert("test hovering function")
+                });
+            }
+        });
+    }
+
+
+</script>
+{% endblock %}

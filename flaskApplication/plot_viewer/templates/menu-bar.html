@@ -1,0 +1,12 @@
+{% block content %}
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+        <div class="navbar-nav">
+            <a class="nav-item nav-link" href="/">Home</a>
+                {% for key, value in menu_items.items() %}
+                    <a class="nav-item nav-link" href="{{value}}">{{key}}</a>
+                {% endfor %}
+        </div>
+    </div>
+</nav>
+{% endblock %}
